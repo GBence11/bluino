@@ -65,14 +65,13 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
         while ((index = buffer.indexOf('\n')) != -1) {
           String message = buffer.substring(0, index).trim();
           buffer = buffer.substring(index + 1);
-          print(message);
           try {
             final jsonData = json.decode(message);
             if (jsonData is Map<String, dynamic>) {
               handleJsonData(jsonData);
             }
           } catch (_) {
-            print("Nem sikerült feldolgozni:" + message);
+            print("Nem sikerült feldolgozni: \$message");
           }
         }
 
@@ -104,16 +103,16 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
 
   void sendMessage(String message) {
     if (connection != null && isConnected) {
-      connection!.output.add(utf8.encode(message));
-      print("Üzenet küldve:" + message);
+      connection!.output.add(utf8.encode("\$message\r\n"));
+      print("Üzenet küldve: \$message");
     }
   }
 
   void handleJsonData(Map<String, dynamic> jsonData) {
     setState(() {
-      voltage = (jsonData['volt'] as num?)?.toDouble();
-      current = (jsonData['amper'] as num?)?.toDouble();
-      power = (jsonData['watt'] as num?)?.toDouble();
+      voltage = ((jsonData['volt'] as num?)?.toDouble() ?? 0) / 100;
+      current = ((jsonData['amper'] as num?)?.toDouble() ?? 0) / 100;
+      power = ((jsonData['watt'] as num?)?.toDouble() ?? 0) / 100;
     });
   }
 
@@ -418,8 +417,7 @@ class _SecondPageState extends State<SecondPage> {
             ElevatedButton(
               onPressed: () {
                 final jsonMessage = jsonEncode({
-                  "M": 1,
-                  "Vout": (_sliderValue * 1000).toInt(),
+                  "Vout": _sliderValue * 1000,
                 });
                 widget.sendMessage(jsonMessage);
               },
@@ -456,8 +454,7 @@ class _LampPageState extends State<LampPage> {
 
   void sendLampState() {
     final message = jsonEncode({
-      "lamp": isOn ? 1 : 0,
-      "brightness": brightness,
+      "lamp": brightness,
     });
     widget.sendMessage(message);
   }
@@ -471,7 +468,6 @@ class _LampPageState extends State<LampPage> {
         child: Column(
           children: [
             SwitchListTile(
-              title: const Text("Lámpa be / ki"),
               value: isOn,
               onChanged: (value) {
                 setState(() {
@@ -483,7 +479,7 @@ class _LampPageState extends State<LampPage> {
             Expanded(
               child: Center(
                 child: RotatedBox(
-                  quarterTurns: -1, // Függőleges csúszka
+                  quarterTurns: -1,
                   child: Slider(
                     value: brightness,
                     min: 0,
