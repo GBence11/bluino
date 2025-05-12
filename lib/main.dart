@@ -71,7 +71,7 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
               handleJsonData(jsonData);
             }
           } catch (_) {
-            print("Nem sikerült feldolgozni: \$message");
+            print("Nem sikerült feldolgozni:" + message);
           }
         }
 
@@ -104,7 +104,7 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
   void sendMessage(String message) {
     if (connection != null && isConnected) {
       connection!.output.add(utf8.encode("\$message\r\n"));
-      print("Üzenet küldve: \$message");
+      print("Üzenet küldve:" + message);
     }
   }
 
@@ -418,7 +418,7 @@ class _SecondPageState extends State<SecondPage> {
               onPressed: () {
                 final jsonMessage = jsonEncode({
                   "M": 1,
-                  "volt": _sliderValue * 1000,
+                  "Vout": _sliderValue * 1000,
                 });
                 widget.sendMessage(jsonMessage);
               },
