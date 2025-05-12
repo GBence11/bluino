@@ -6,6 +6,14 @@ import 'dart:async';
 
 void main() => runApp(const MyApp());
 
+class AppColors {
+  static const Color primary = Color.fromARGB(255, 38, 160, 148);
+  static const Color background = Color.fromARGB(255, 218, 225, 235);
+  static const Color text = Color.fromARGB(255, 0, 0, 0);
+  static const Color appBar = Colors.teal;
+  static const Color button = Colors.teal;
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -13,20 +21,43 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bluino',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const BluetoothLedPage(),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.button,
+          background: const Color.fromARGB(255, 209, 215, 221),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.appBar,
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.button,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        scaffoldBackgroundColor: AppColors.background,
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: AppColors.text),
+          bodyMedium: TextStyle(color: AppColors.text),
+        ),
+        useMaterial3: true, // opcionális, ha új Material 3 dizájnt akarsz
+      ),
+      home: const MyHomePage(),
     );
   }
 }
 
-class BluetoothLedPage extends StatefulWidget {
-  const BluetoothLedPage({super.key});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
 
   @override
-  _BluetoothLedPageState createState() => _BluetoothLedPageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _BluetoothLedPageState extends State<BluetoothLedPage> {
+class _MyHomePageState extends State<MyHomePage> {
   String connectionStatus = "Nincs kapcsolat";
   bool isConnected = false;
   BluetoothConnection? connection;
@@ -111,8 +142,8 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
   void handleJsonData(Map<String, dynamic> jsonData) {
     setState(() {
       voltage = ((jsonData['volt'] as num?)?.toDouble() ?? 0) / 100;
-      current = ((jsonData['amper'] as num?)?.toDouble() ?? 0) / 100;
-      power = ((jsonData['watt'] as num?)?.toDouble() ?? 0) / 100;
+      current = ((jsonData['amper'] as num?)?.toDouble() ?? 0) / 1000;
+      power = ((jsonData['watt'] as num?)?.toDouble() ?? 0) / 1000;
     });
   }
 
@@ -261,21 +292,23 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SecondPage(
-                      connection: connection,
-                      isConnected: isConnected,
-                      sendMessage: sendMessage,
-                      voltage: voltage,
-                      current: current,
-                      power: power,
-                    ),
-                  ),
-                );
-              },
+              onPressed: isConnected
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SecondPage(
+                            connection: connection,
+                            isConnected: isConnected,
+                            sendMessage: sendMessage,
+                            voltage: voltage,
+                            current: current,
+                            power: power,
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
               style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50)),
               child: const Text("DCDC/Buckboost"),
@@ -467,14 +500,9 @@ class _LampPageState extends State<LampPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SwitchListTile(
-              value: isOn,
-              onChanged: (value) {
-                setState(() {
-                  isOn = value;
-                  sendLampState();
-                });
-              },
+            const Text(
+              "Fényerő:",
+              style: TextStyle(fontSize: 18),
             ),
             Expanded(
               child: Center(
@@ -489,7 +517,7 @@ class _LampPageState extends State<LampPage> {
                     onChanged: (value) {
                       setState(() {
                         brightness = value;
-                        sendLampState();
+                        sendLampState(); // minden változásnál küld
                       });
                     },
                   ),
@@ -519,6 +547,3 @@ class pchargePage extends StatelessWidget {
     );
   }
 }
-
-// A SecondPage, LampPage, pchargePage osztályok logikailag nem változnak, mivel azok nem használják a Bluetooth streamet közvetlenül,
-// így azok kódját nem szükséges módosítani a jelen hiba javítása miatt.
