@@ -65,6 +65,7 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
         while ((index = buffer.indexOf('\n')) != -1) {
           String message = buffer.substring(0, index).trim();
           buffer = buffer.substring(index + 1);
+          print(message);
           try {
             final jsonData = json.decode(message);
             if (jsonData is Map<String, dynamic>) {
@@ -103,7 +104,7 @@ class _BluetoothLedPageState extends State<BluetoothLedPage> {
 
   void sendMessage(String message) {
     if (connection != null && isConnected) {
-      connection!.output.add(utf8.encode("\$message\r\n"));
+      connection!.output.add(utf8.encode(message));
       print("Üzenet küldve:" + message);
     }
   }
@@ -418,7 +419,7 @@ class _SecondPageState extends State<SecondPage> {
               onPressed: () {
                 final jsonMessage = jsonEncode({
                   "M": 1,
-                  "Vout": _sliderValue * 1000,
+                  "Vout": (_sliderValue * 1000).toInt(),
                 });
                 widget.sendMessage(jsonMessage);
               },
